@@ -1,0 +1,66 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+[System.Serializable]
+public class KeyForInput{
+	public string KeyUp, KeyLeft, KeyDown, KeyRight;
+}
+
+public class PlayerInput : MonoBehaviour {
+    [Header("===== Player Input KeyCode =====")]
+	public KeyForInput _keyForInput;
+
+    [Header("===== Direction Velocity =====")]
+	public float _DirectionUp;
+	public float _DirectionRight;
+
+    [Header("===== ON/OFF =====")]
+    public bool _Switch = true;
+
+	private float targetUp;
+	private float targetRight;
+	private float velocityUp;
+	private float velocityRight;
+    
+    [Header("===== save data =====")]
+    [SerializeField] public float distancePoint;
+    [SerializeField] public Vector3 s_direction; //player's model direction;
+	
+	// Update is called once per frame
+	void Update () {
+		targetUp = (Input.GetKey(_keyForInput.KeyUp) ? 1.0f:0) - (Input.GetKey(_keyForInput.KeyDown) ? 1.0f :0);
+		targetRight = (Input.GetKey(_keyForInput.KeyRight) ? 1.0f:0) - (Input.GetKey(_keyForInput.KeyLeft) ? 1.0f:0);
+
+        if(_Switch == false)
+        {
+            targetUp = 0;
+            targetRight = 0;
+        }
+		_DirectionUp = Mathf.SmoothDamp(_DirectionUp,targetUp,ref velocityUp,0.1f);
+		_DirectionRight = Mathf.SmoothDamp(_DirectionRight,targetRight, ref velocityRight,0.1f);
+
+        Vector2 AxisPoint = EllipticalGridMapping(new Vector2(_DirectionRight,_DirectionUp));
+        float _DUp = AxisPoint.y;
+        float _DRight = AxisPoint.x;
+
+        /*通过修改blend tree里的滑条来控制动画的播放，即用目前按键的点的 x长度的平方 加 y的长度的平方 开根 求得目前距离原点的斜长度 */
+        distancePoint = Mathf.Sqrt(_DUp * _DUp + _DRight * _DRight);
+
+        /*修改玩家模型的方向，右按键的值，乘以固定的正值，根据正负来判断朝向 */
+        s_direction = _DUp * transform.forward + _DRight * transform.right;
+	}
+
+    /// <summary>
+    /// 椭圆公式，将网格坐标变为椭圆坐标，用来抑制人物斜方向跑和正负方向跑的速度不同问题.
+    /// 公式来源 <https://arxiv.org/ftp/arxiv/papers/1509/1509.06344.pdf> 第五页
+    /// </summary>
+    private Vector2 EllipticalGridMapping(Vector2 Input)
+    {
+        Vector2 output = Vector2.zero;
+        output.x = Input.x * Mathf.Sqrt(1 - Input.y * Input.y / 2.0f);
+        output.y = Input.y * Mathf.Sqrt(1 - Input.x * Input.x / 2.0f);
+
+        return output;
+    }
+}
