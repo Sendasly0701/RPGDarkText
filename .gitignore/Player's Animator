@@ -1,0 +1,42 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class HeroAnimator : MonoBehaviour {
+
+    public GameObject HeroModel;
+
+    public float runSpeed;
+    public float moveSpeed;
+
+    private Rigidbody rg;
+    private PlayerInput _PI;
+    [SerializeField] private Animator _PlayerAniamtor;
+    [SerializeField] private Vector3 playerMove;
+
+    public bool run;
+
+    private void Awake()
+    {
+        _PI = GetComponent<PlayerInput>();
+        _PlayerAniamtor = HeroModel.GetComponent<Animator>();
+        rg = GetComponent<Rigidbody>();
+    }
+
+    private void Update()
+    {
+        run = Input.GetKey(KeyCode.LeftShift);
+        _PlayerAniamtor.SetFloat("Forward",_PI.distancePoint * Mathf.Lerp(_PlayerAniamtor.GetFloat("Forward"),((run)? 2.0f : 1.0f),0.5f));
+
+        if(_PI.distancePoint > 0.1f)
+        {
+            HeroModel.transform.forward = _PI.s_direction;
+        }
+        playerMove = _PI.distancePoint * HeroModel.transform.forward * moveSpeed * ((run) ? runSpeed : 1.0f);
+    }
+
+    private void FixedUpdate()
+    {
+        rg.position += playerMove * Time.fixedDeltaTime;
+    }
+}
