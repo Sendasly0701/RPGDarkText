@@ -1,0 +1,31 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+
+public class CameraFollow : MonoBehaviour {
+
+    [SerializeField] public Transform target;
+    
+    public float directionUp;
+    public float directionAway;
+    public float lerpSmooth;
+
+    private PlayerAnimator playAnima;
+
+    private void Awake()
+    {
+        playAnima = GetComponent<PlayerAnimator>();
+    }
+    private void FixedUpdate()
+    {
+        Vector3 direction = target.position - transform.position;
+        transform.position = Vector3.Lerp(transform.position, target.position + new Vector3(0, directionUp, -directionAway), lerpSmooth * Time.deltaTime);
+        
+        transform.LookAt(target);
+        if (Input.GetKey(KeyCode.F))
+        {
+            transform.RotateAround(target.position, Vector3.up, 30 * Time.deltaTime);
+        }
+    }
+}
